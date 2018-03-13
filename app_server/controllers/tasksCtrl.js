@@ -57,62 +57,60 @@ module.exports.reset = async function(req, res){
 };
 
 
-//    //CREATE NEW GROUP
-//app.post('/api/group', async function(req, res){
-//    mongoose.connect(db_path, options);   
-//
-//    var newGroup = new tasksModel({title:req.body.title});       
-//    await newGroup.save(function(err){                
-//        if(err) return console.log(err);
-//        console.log("New group was saved", req.body.title);
-//    });
-//    
-//    tasksModel.find({}, function(err, doc){
-//        res.type('application/json');
-//        res.jsonp(doc); 
-//    });
-//});	
-//
-//
-//    //ADD NEW TASK
-//app.post('/api/task', async function(req, res){
-//    mongoose.connect(db_path, options);    
-//    await tasksModel.findOneAndUpdate({"_id": req.body.group._id},
-//        {$push: {"tasks": {
-//            name: req.body.name,
-//            due_date: req.body.due_date,
-//            description: req.body.description
-//        }}},{upsert: true},function(err, doc) {
-//            if(err) return console.log(err);
-//            console.log("New task was saved", req.body.name);
-//        });
-//    
-//    tasksModel.find({}, function(err, doc){
-//        res.type('application/json');
-//        res.jsonp(doc); 
-//    });
-//});	
-//
-//
-//
-//    //DELETE THE GROUP
-//app.delete('/api/deleteGroup', function(req, res){
-//    let parse_url = url.parse(req.url).query;
-//    let id = qs.parse(parse_url).id;
-//    
-//    mongoose.connect(db_path, options);
-//    //find the task by id and delete
-//    tasksModel.remove({"_id":id}, function(err, doc){
-//        console.log("The group was deleted");
-//    });
-//    
-//    tasksModel.find({}, function(err, doc){
-//        res.type('application/json');
-//        res.jsonp(doc); 
-//    });
-//  
-//});
-//
+    //CREATE NEW GROUP
+module.exports.createGroup = async function(req, res){
+    var newGroup = new tasksModel({title:req.body.title});       
+    await newGroup.save(function(err){                
+        if(err) return console.log(err);
+        console.log("New group was saved", req.body.title);
+    });
+    
+    tasksModel.find({}, function(err, doc){
+        res.type('application/json');
+        res.jsonp(doc); 
+    });
+};	
+
+
+    //ADD NEW TASK
+module.exports.createTask = async function(req, res){
+    
+    await tasksModel.findOneAndUpdate({"_id": req.body.group._id},
+        {$push: {"tasks": {
+            name: req.body.name,
+            due_date: req.body.due_date,
+            description: req.body.description
+        }}},{upsert: true},function(err, doc) {
+            if(err) return console.log(err);
+            console.log("New task was saved", req.body.name);
+        });
+    
+    tasksModel.find({}, function(err, doc){
+        res.type('application/json');
+        res.jsonp(doc); 
+    });
+};	
+
+
+
+    //DELETE THE GROUP
+module.exports.deleteGroup = function(req, res){
+    let parse_url = url.parse(req.url).query;
+    let id = qs.parse(parse_url).id;
+    
+    mongoose.connect(db_path, options);
+    //find the task by id and delete
+    tasksModel.remove({"_id":id}, function(err, doc){
+        console.log("The group was deleted");
+    });
+    
+    tasksModel.find({}, function(err, doc){
+        res.type('application/json');
+        res.jsonp(doc); 
+    });
+  
+};
+
 //    //DELETE THE TASK FROM THE GROUP
 //app.delete('/api/deleteTask', function(req, res){
 //    let parse_url = url.parse(req.url).query;
