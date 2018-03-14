@@ -11,6 +11,11 @@ router.post('/api/saveMoving', tasksCtrl.saveMoving);//save moving tasks
 router.post('/api/group', tasksCtrl.createGroup);//create new group
 router.post('/api/task', tasksCtrl.createTask);//create new task
 
-app.delete('/api/deleteGroup', tasksCtrl.deleteGroup);//delete the group
+router.delete('/api/deleteGroup', tasksCtrl.deleteGroup);//delete the group
+router.delete('/api/deleteTask', tasksCtrl.deleteTask);//delete the task
+
+router.put('/api/update', tasksCtrl.update);//update the task
+
+
 
 module.exports = router;

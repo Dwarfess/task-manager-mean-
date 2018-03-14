@@ -1,7 +1,8 @@
 var fs = require("fs");
+var url = require('url');
+var qs = require("querystring");
 
 var mongoose = require('mongoose');
-var userModel = mongoose.model('users');
 var tasksModel = mongoose.model('tasks');
 
 //function receives and adds the array with tasks to mongo
@@ -11,9 +12,9 @@ async function list(file){
     for(var i=0;i<obj.length;i++){
         let newTask = new tasksModel(obj[i]);
 
-        await newTask.save(function(err){
+        await (newTask.save(function(err){
             if(err) return console.log(err);
-        });
+        }));
     }
 }
 
@@ -28,11 +29,11 @@ module.exports.getTasks = function(req, res){
     //SAVE MOVING TASKS
 module.exports.saveMoving = async function(req, res){ 
     
-    await tasksModel.remove({}, function (err) {
+    await tasksModel.remove({}, async function (err) {
         if (err) return handleError(err);
     });
         
-    await list(req.body);//function receives and adds the array with tasks to mongo
+    await (list(req.body));//function receives and adds the array with tasks to mongo
             
     tasksModel.find({}, function(err, doc){
         res.type('application/json');
@@ -43,12 +44,12 @@ module.exports.saveMoving = async function(req, res){
     //RESET TO DEFAULT
 module.exports.reset = async function(req, res){ 
 
-    await tasksModel.remove({}, function (err) {
+    await tasksModel.remove({}, async function (err) {
         if (err) return handleError(err);
     });
     
     let file = JSON.parse(fs.readFileSync('public/tasks.json', 'utf8'));
-    await list(file);//function receives and adds the array with tasks to mongo
+    await (list(file));//function receives and adds the array with tasks to mongo
     
     tasksModel.find({}, function(err, doc){
         res.type('application/json');
@@ -60,7 +61,7 @@ module.exports.reset = async function(req, res){
     //CREATE NEW GROUP
 module.exports.createGroup = async function(req, res){
     var newGroup = new tasksModel({title:req.body.title});       
-    await newGroup.save(function(err){                
+    await newGroup.save(async function(err){                
         if(err) return console.log(err);
         console.log("New group was saved", req.body.title);
     });
@@ -80,7 +81,7 @@ module.exports.createTask = async function(req, res){
             name: req.body.name,
             due_date: req.body.due_date,
             description: req.body.description
-        }}},{upsert: true},function(err, doc) {
+        }}},{upsert: true},async function(err, doc) {
             if(err) return console.log(err);
             console.log("New task was saved", req.body.name);
         });
@@ -94,13 +95,12 @@ module.exports.createTask = async function(req, res){
 
 
     //DELETE THE GROUP
-module.exports.deleteGroup = function(req, res){
+module.exports.deleteGroup = async function(req, res){
     let parse_url = url.parse(req.url).query;
     let id = qs.parse(parse_url).id;
-    
-    mongoose.connect(db_path, options);
+
     //find the task by id and delete
-    tasksModel.remove({"_id":id}, function(err, doc){
+    await tasksModel.remove({"_id":id}, async function(err, doc){
         console.log("The group was deleted");
     });
     
@@ -111,36 +111,36 @@ module.exports.deleteGroup = function(req, res){
   
 };
 
-//    //DELETE THE TASK FROM THE GROUP
-//app.delete('/api/deleteTask', function(req, res){
-//    let parse_url = url.parse(req.url).query;
-//    let id = qs.parse(parse_url).id;
-//    
-//    mongoose.connect(db_path, options);
-//    tasksModel.update({},{$pull:{"tasks":{"_id":id}}},{multi:true}, function(err, doc){
-//        console.log("The task was deleted"); 
-//    });
-//    
-//    tasksModel.find({}, function(err, doc){
-//        res.type('application/json');
-//        res.jsonp(doc); 
-//    });
-//});
-//
-//    //UPDATE TASK
-//app.put('/api/update', function(req, res){
-//    mongoose.connect(db_path, options);
-//
-//    tasksModel.updateOne({"tasks._id": req.body._id},
-//                         { $set: { "tasks.$.name":req.body.name,
-//                                   "tasks.$.due_date":req.body.due_date,
-//                                   "tasks.$.description":req.body.description
-//                                 }}, function(err,doc){
-//        console.log("That task was update");
-//    });
-//    
-//    tasksModel.find({}, function(err, doc){
-//        res.type('application/json');
-//        res.jsonp(doc); 
-//    });
-//});
+    //DELETE THE TASK FROM THE GROUP
+module.exports.deleteTask = async function(req, res){
+    let parse_url = url.parse(req.url).query;
+    let id = qs.parse(parse_url).id;
+
+    await tasksModel.update({},{$pull:{"tasks":{"_id":id}}},{multi:true}, async function(err, doc){
+        console.log("The task was deleted"); 
+    });
+    
+    tasksModel.find({}, function(err, doc){
+        console.log(`************* return`);
+        res.type('application/json');
+        res.jsonp(doc); 
+    });
+};
+
+    //UPDATE TASK
+module.exports.update = async function(req, res){
+    
+    await tasksModel.updateOne({"tasks._id": req.body._id},
+                         { $set: { "tasks.$.name":req.body.name,
+                                   "tasks.$.due_date":req.body.due_date,
+                                   "tasks.$.description":req.body.description
+                                 }}, async function(err,doc){
+        console.log(`That task was updated ${req.body.name}`);
+    });
+    
+    tasksModel.find({}, function(err, doc){
+        console.log(`************* return update ${req.body.name}`);
+        res.type('application/json');
+        res.jsonp(doc); 
+    });
+};
